@@ -6,7 +6,7 @@ from bookmark_form import bookmark_form_1
 
 memory = {}
 short_form = '''<div style="background-color: #eee; padding: 20px">
-                    <h3 style="font-weight: 300">The URL for your specified site is <a href="{0}">http://localhost:8000/{1}</a></h3>
+                    <h3 style="font-weight: 300">The URL for your specified site is <a href="{0}">https://compacturl.herokuapp.com/{1}</a></h3>
                 </div>'''
 
 

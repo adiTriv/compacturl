@@ -25,7 +25,7 @@ bookmark_form_1 = '''<!DOCTYPE html>
     </style>
 </head>
 <body style="background-color: #eee; padding: 20px">
-    <form action="http://localhost:8000/" method="post">
+    <form action="https://compacturl.herokuapp.com/" method="post">
         <div><input type="text" name="url_body" placeholder="Place your URL here"></div>
         <div><input type="text" name="short-name" placeholder="Short name that you want"></div>
         <button type="submit">Submit!</button>
