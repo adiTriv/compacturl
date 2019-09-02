@@ -2,12 +2,17 @@ from requests import get, post
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, unquote
 from os import environ
+from threading import *
+from socketserver import ThreadingMixIn
 from bookmark_form import bookmark_form_1
 
 memory = {}
 short_form = '''<div style="background-color: #eee; padding: 20px">
                     <h3 style="font-weight: 300">The URL for your specified site is <a href="{0}">https://compacturl.herokuapp.com/{1}</a></h3>
                 </div>'''
+
+class ThreadHTTPserver(ThreadingMixIn, HTTPServer):
+    "This is an HTTPServer that supports thread based concurrency."
 
 
 class bookmark_server(BaseHTTPRequestHandler):
@@ -61,7 +66,6 @@ class bookmark_server(BaseHTTPRequestHandler):
                 self.wfile.write(short_form.format(url_given, short_url).encode())
             else:
                 # if there is no such page send 404.
-                print(self.checkURI(url_given))
                 self.send_response(404)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
@@ -75,7 +79,6 @@ class bookmark_server(BaseHTTPRequestHandler):
         # it does it by sending a get request to the url, if funcn gets a response back it returns true
         try:
             reponse_obj = get(url_arg)
-            print(reponse_obj)
             return True
         except Exception as error:
             # if there is no such page it gets an error, so the funcn returns false.
@@ -88,7 +91,7 @@ class bookmark_server(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     port = int(environ.get('PORT', 8000))
     server_address = ('', port)
-    http_server = HTTPServer(server_address, bookmark_server)
+    http_server = ThreadHTTPserver(server_address, bookmark_server)
     http_server.serve_forever()
 
 
