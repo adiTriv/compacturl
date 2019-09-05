@@ -26,7 +26,7 @@ class bookmark_server(BaseHTTPRequestHandler):
             # unquote it & chck if it is in memory
 
             # connect to database
-            db_get = psycopg2.connect("dbname=postgresql-shaped-41597")
+            db_get = psycopg2.connect("dbname=compacturl")
             cur = db_get.cursor()
             cur.execute("select name, url from shortnames")
             result = cur.fetchall()
@@ -73,7 +73,7 @@ class bookmark_server(BaseHTTPRequestHandler):
                 # check if the url specified is actual a page on the web
 
                 # connect to database
-                db_post = psycopg2.connect("dbname=postgresql-shaped-41597")
+                db_post = psycopg2.connect("dbname=compacturl")
                 cur = db_post.cursor()
                 try:
                     cur.execute("insert into shortnames values (%s, %s);", ((clean(short_url),), (clean(url_given),)))
