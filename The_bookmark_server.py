@@ -3,8 +3,10 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, unquote
 from os import environ
 from threading import *
+import psycopg2
+from bleach import clean
 from socketserver import ThreadingMixIn
-from bookmark_form import bookmark_form_1
+from bookmark_form import bookmark_form_1, bookmark_form_2
 
 memory = {}
 short_form = '''<div style="background-color: #eee; padding: 20px">
@@ -22,6 +24,17 @@ class bookmark_server(BaseHTTPRequestHandler):
             # if there is a path (name) specified
             name = unquote(self.path[1:])
             # unquote it & chck if it is in memory
+
+            # connect to database
+            db_get = psycopg2.connect("dbname=compacturl")
+            cur = db_get.cursor()
+            cur.execute("select name, url from shortnames")
+            result = cur.fetchall()
+            # save data to memory
+            for row in result:
+                memory[row[0]] = row[1]
+                
+            
             if name in memory:
                 # if name exist in the memory then there will be a url associated with it, redirect there
                 self.send_response(303)
@@ -32,7 +45,8 @@ class bookmark_server(BaseHTTPRequestHandler):
                 self.send_response(404)
                 self.send_header('Content-type', 'text/plain; charset=utf-8')
                 self.end_headers()
-                self.wfile.write("I don't know about '{}'.".format(name).encode())
+                self.wfile.write("There no such page as '{}'.".format(name).encode())
+            
 
         else:
             # in case of no path (name) specified, send the form to make a short url.
@@ -57,13 +71,25 @@ class bookmark_server(BaseHTTPRequestHandler):
             # save those to a variable.
             if self.checkURI(url_given) == True:
                 # check if the url specified is actual a page on the web
-                memory[short_url] = url_given
-                # then store it in a dic named memory.
-                # and send a response confirming that the url is shortened successfully 
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.end_headers()
-                self.wfile.write(short_form.format(url_given, short_url).encode())
+
+                # connect to database
+                db_post = psycopg2.connect("dbname=compacturl")
+                cur = db_post.cursor()
+                try:
+                    cur.execute("insert into shortnames values (%s, %s);", ((clean(short_url),), (clean(url_given),)))
+                    db_post.commit()
+                    db_post.close()
+                    # then store it in a dic named memory.
+                    # and send a response confirming that the url is shortened successfully 
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(short_form.format(url_given, short_url).encode())
+                except Exception as e:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(bookmark_form_2.encode())
             else:
                 # if there is no such page send 404.
                 self.send_response(404)
