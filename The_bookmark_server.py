@@ -13,6 +13,8 @@ short_form = '''<div style="background-color: #eee; padding: 20px">
                     <h3 style="font-weight: 300">The URL for your specified site is <a href="{0}">https://compacturl.herokuapp.com/{1}</a></h3>
                 </div>'''
 
+db_name = "postgres://pnivxdxccbwtsz:a88f54b5ee63d5724472a5bdd7eafdbf1fb3fb6ec2870cdba71d901d4e45f391@ec2-174-129-27-3.compute-1.amazonaws.com:5432/dac5dbdv3bg8q8"
+
 class ThreadHTTPserver(ThreadingMixIn, HTTPServer):
     "This is an HTTPServer that supports thread based concurrency."
 
@@ -26,7 +28,7 @@ class bookmark_server(BaseHTTPRequestHandler):
             # unquote it & chck if it is in memory
 
             # connect to database
-            db_get = psycopg2.connect("dbname=postgresql-shaped-41597")
+            db_get = psycopg2.connect("dbname={0}".format(db_name))
             cur = db_get.cursor()
             cur.execute("select name, url from shortnames")
             result = cur.fetchall()
@@ -73,7 +75,7 @@ class bookmark_server(BaseHTTPRequestHandler):
                 # check if the url specified is actual a page on the web
 
                 # connect to database
-                db_post = psycopg2.connect("dbname=postgresql-shaped-41597")
+                db_post = psycopg2.connect("dbname={0}".format(db_name))
                 cur = db_post.cursor()
                 try:
                     cur.execute("insert into shortnames values (%s, %s);", ((clean(short_url),), (clean(url_given),)))
